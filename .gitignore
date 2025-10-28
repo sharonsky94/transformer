@@ -1,17 +1,41 @@
- output/
- __pycache__/
- *.pyc
- *.pyo
- *.pyd
- *.pyw
- *.pyz
- training_state.npy
- *.keras
- *.npy
- *.txt
- *.json
- *.csv
- *.log
- *.err
- *.out
- *.npy_backup
+__pycache__/utils.cpython-313.pyc
+output/sl128_b78_as10/model_checkpoint_3.64.keras
+output/sl128_b78_as10/model_checkpoint_3.65.keras
+output/sl128_b78_as10/model_checkpoint_3.66.keras
+output/sl128_b78_as10/model_checkpoint_3.69.keras
+output/sl128_b78_as10/model_checkpoint_3.70.keras
+output/sl128_b78_as10/model_checkpoint_3.72.keras
+output/sl128_b78_as10/model_checkpoint_3.73.keras
+output/sl128_b78_as10/model_checkpoint_3.78.keras
+output/sl128_b78_as10/model_checkpoint_3.79.keras
+output/sl128_b78_as10/model_checkpoint_3.82.keras
+output/sl128_b78_as10/model_checkpoint_3.84.keras
+output/sl128_b78_as10/model_checkpoint_3.86.keras
+output/sl128_b78_as10/model_checkpoint_3.94.keras
+output/sl16_b312_as1/model_checkpoint_3.34.keras
+output/sl16_b312_as1/model_checkpoint_3.36.keras
+output/sl32_b156_as1/model_checkpoint_3.73.keras
+output/sl32_b156_as1/model_checkpoint_3.88.keras
+output/sl32_b62_as10/model_checkpoint_3.23.keras
+output/sl32_b62_as10/model_checkpoint_3.35.keras
+output/sl32_b62_as10/model_checkpoint_3.39.keras
+output/sl32_b62_as10/model_checkpoint_3.59.keras
+output/sl64_b31_as10/model_checkpoint_3.50.keras
+output/sl64_b31_as10/model_checkpoint_3.52.keras
+output/sl64_b31_as10/model_checkpoint_3.58.keras
+output/sl64_b31_as10/model_checkpoint_3.60.keras
+output/sl64_b31_as10/model_checkpoint_3.61.keras
+output/sl8_b625_as1/model_checkpoint_3.08.keras
+output/sl8_b625_as1/model_checkpoint_3.35.keras
+output/sl8_b625_as1/model_checkpoint_3.68.keras
+output/sl8_b625_as1/model_checkpoint_4.19.keras
+output/sl8_b625_as1/model_checkpoint_4.76.keras
+output/sl8_b625_as1/model_checkpoint_5.43.keras
+output/sl8_b625_as1/model_checkpoint_5.65.keras
+output/sl8_b625_as1/model_checkpoint_5.95.keras
+output/sl8_b625_as1/model_checkpoint_6.15.keras
+output/sl8_b625_as1/model_checkpoint_6.45.keras
+.gitignore
+tokens_15k268.npy
+training_state.npy
+training_state.npy_backup
