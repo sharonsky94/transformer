@@ -1,0 +1,17 @@
+ output/
+ __pycache__/
+ *.pyc
+ *.pyo
+ *.pyd
+ *.pyw
+ *.pyz
+ training_state.npy
+ *.keras
+ *.npy
+ *.txt
+ *.json
+ *.csv
+ *.log
+ *.err
+ *.out
+ *.npy_backup
