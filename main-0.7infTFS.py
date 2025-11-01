@@ -11,9 +11,9 @@ import numpy as np
 # --- Настройки ---
 dir_path = ''
 tokenizer = Tokenizer.from_file(dir_path + 'bpe_tokenizer_15k268files.json')
-model_path = dir_path + "output/sl32_b62_as10/model_checkpoint_3.23.keras"
+model_path = dir_path + "output/sl8_b625_as10/model_checkpoint_1.75.keras"
 
-max_length = 25
+max_length = 100
 
 # --- Определение Transformer блока (для загрузки модели) ---
 class TransformerBlock(layers.Layer):
@@ -171,8 +171,8 @@ def generate_text(model, tokenizer, input_text, max_length=100, temperature=1.0,
 root = tk.Tk()
 root.title("Диалог")
 
-text_box = ScrolledText(root, height=27, width=40)
-text_box.pack(pady=30)
+text_box = ScrolledText(root, height=25, width=60)
+text_box.pack(pady=15)
 
 tk.Label(root, text="Температура").pack()
 temp_entry = tk.Entry(root, width=5)
