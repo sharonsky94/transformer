@@ -37,10 +37,10 @@ num_transformer_blocks = 6 # количество блоков трансфор�
 use_lr_scheduler = False
 initial_lr = 0.001 #1e-7 #0.001
 
-sequence_length = 8 # размер сэмпла
+sequence_length = 128 # размер сэмпла
 # размер батча батча для тпу крат128
 accumulation_steps = 10  # количество шагов для накопления градиентов
-batch_size = int(50000/sequence_length/accumulation_steps) #512 #8*50 #int(150000/sequence_length)
+batch_size = int(200000/sequence_length/accumulation_steps) #512 #8*50 #int(150000/sequence_length)
 effective_batch_size = batch_size * accumulation_steps
 state_file = 'training_state.npy'
 

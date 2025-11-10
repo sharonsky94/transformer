@@ -11,9 +11,14 @@ import numpy as np
 # --- Настройки ---
 dir_path = ''
 tokenizer = Tokenizer.from_file(dir_path + 'bpe_tokenizer_15k268files.json')
-model_path = dir_path + "output/sl8_b625_as10/model_checkpoint_1.75.keras"
+model_path = dir_path + "output/sl128_b156_as10/model_checkpoint_3.53.keras"
 
-max_length = 100
+max_generations = 100000
+temperature = 1
+tail_free_threshold = 0.99
+stop = True
+gui_scale = 2.0
+tokens_per_generation = 20
 
 # --- Определение Transformer блока (для загрузки модели) ---
 class TransformerBlock(layers.Layer):
@@ -37,6 +42,8 @@ class TransformerBlock(layers.Layer):
         ffn_output = self.dropout2(ffn_output, training=False)
         return self.layernorm2(out1 + ffn_output)
 
+    def build(self, input_shape):
+        super().build(input_shape)
 tf.keras.utils.get_custom_objects().update({'TransformerBlock': TransformerBlock})
 
 # --- Загрузка модели асинхронно ---
@@ -44,58 +51,49 @@ def load_model_async(path, callback):
     def load_model():
         # Загружаем без compile, чтобы не тратить время
         model = tf.keras.models.load_model(path, compile=False)
-
         # Принудительно компилируем для JIT ускорения (XLA)
         model.compile(jit_compile=True)
-
         callback(model)
-
     Thread(target=load_model, daemon=True).start()
 
+# --- Окно загрузки ---
 def on_model_loaded(loaded_model):
     global model
     model = loaded_model
     progress_window.destroy()
-    messagebox.showinfo("Готово", "Модель успешно загружена и оптимизирована для быстрого инференса.")
+    messagebox.showinfo("Готово", "Модель успешно загружена и\nоптимизирована для быстрого\nинференса.")
 
-# --- Генерация ---
+# --- Генерация --- 
 def process_text():
+    global stop
+    stop = False
     text = text_box.get("1.0", tk.END).rstrip()
-    temp = float(temp_entry.get() or 1.0)
-    tfs = float(tfs_entry.get() or 0.98)
+    temp = float(temp_entry.get() or temperature)
+    tfs = float(tfs_entry.get() or tail_free_threshold)
 
-    # Генерация текста
-    output = generate_text(model, tokenizer, text, max_length=max_length,
-                                 temperature=temp, tail_free_threshold=tfs)
+    for i in range(max_generations):
+        if stop:
+            break
+        new_text = generate_text(model, tokenizer, text, max_length=tokens_per_generation, temperature=temp, tail_free_threshold=tfs)
+        text_box.insert(tk.END, new_text)
+        text_box.see(tk.END)
+        text += new_text  # <— добавляем в контекст
 
-    # Обновление интерфейса
-    text_box.delete("1.0", tk.END)
-    text_box.insert(tk.END, output[1:])
-    text_box.see(tk.END)
     progress_window.destroy()
 
-# --- Таймер для окна загрузки / генерации ---
-def update_timer():
-    elapsed_time = time.time() - start_time
-    progress_label.config(text=f"Подождите...\nПрошло {int(elapsed_time)} секунд")
-    progress_window.after(1000, update_timer)
-
-# --- Обработчик кнопки ---
+# --- Обработчик кнопки генерации ---
 def on_button_click():
-    global progress_window, start_time, progress_label
-    start_time = time.time()
-
-    progress_window = tk.Toplevel(root)
-    progress_window.title("Обработка")
-    progress_label = tk.Label(progress_window, text="Генерация...")
-    progress_label.pack(padx=20, pady=20)
-
-    update_timer()
-    Thread(target=process_text, daemon=True).start()
+    global stop
+    if not stop:
+        stop = True  # остановить
+    else:
+        stop = False  # сбросить флаг
+        Thread(target=process_text, daemon=True).start()
 
 # Функция. Софтмакс
 def softmax(x):
-    return np.exp(x) / np.sum(np.exp(x), axis=0)
+    e_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
+    return e_x / e_x.sum(axis=-1, keepdims=True)
 
 # Функция. Сэмплирование TFS
 def tail_free_sampling(logits, tail_free_threshold=0.9, temperature=1.0):
@@ -148,40 +146,35 @@ def generate_text(model, tokenizer, input_text, max_length=100, temperature=1.0,
     
     for _ in range(max_length):
         token_array = np.array(tokens)[None, :]  # Add batch dimension
-        # predictions = model.predict(token_array, verbose=0)
         predictions = model(token_array, training=False)
         next_token_logits = predictions[0, -1, :]
         
-        next_token = tail_free_sampling(next_token_logits, tail_free_threshold=tail_free_threshold)
+        next_token = tail_free_sampling(next_token_logits, tail_free_threshold=tail_free_threshold, temperature=temperature)
         tokens.append(next_token)        
-        
-        #print(f"\r{_}", end='', flush=True)
-        
         queue5.pop(0)
         queue5.append(next_token)
         if next_token == tokenizer.token_to_id("[END]"):
             break
-        #if ')' in tokenizer.decode([next_token]):
         if '\n\n' in tokenizer.decode(queue5):       
-            break
+            break  
     
-    return tokenizer.decode(tokens)
+    return tokenizer.decode(tokens[-max_length:])
 
 # --- Интерфейс ---
 root = tk.Tk()
 root.title("Диалог")
 
-text_box = ScrolledText(root, height=25, width=60)
-text_box.pack(pady=15)
+text_box = ScrolledText(root, height=int(25*gui_scale), width=int(40*gui_scale))
+text_box.pack(pady=30)
 
 tk.Label(root, text="Температура").pack()
 temp_entry = tk.Entry(root, width=5)
-temp_entry.insert(0, "1.0")
+temp_entry.insert(0, str(temperature))
 temp_entry.pack()
 
 tk.Label(root, text="Tail Free").pack()
 tfs_entry = tk.Entry(root, width=8)
-tfs_entry.insert(0, "0.98")
+tfs_entry.insert(0, str(tail_free_threshold))
 tfs_entry.pack()
 
 tk.Button(root, text="Отправить", command=on_button_click).pack(pady=10)
@@ -192,8 +185,6 @@ progress_window.title("Загрузка модели")
 progress_label = tk.Label(progress_window, text="Загрузка модели...")
 progress_label.pack(padx=20, pady=20)
 
-start_time = time.time()
-update_timer()
 load_model_async(model_path, on_model_loaded)
 
 root.mainloop()
