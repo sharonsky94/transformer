@@ -37,12 +37,13 @@ num_transformer_blocks = 6 # количество блоков трансфор�
 use_lr_scheduler = False
 initial_lr = 0.001 #1e-7 #0.001
 
-sequence_length = 128 # размер сэмпла
+sequence_length = 512 # размер сэмпла
 # размер батча батча для тпу крат128
 accumulation_steps = 10  # количество шагов для накопления градиентов
-batch_size = int(200000/sequence_length/accumulation_steps) #512 #8*50 #int(150000/sequence_length)
+batch_size = int(240000/sequence_length/accumulation_steps) #512 #8*50 #int(150000/sequence_length)
 effective_batch_size = batch_size * accumulation_steps
 state_file = 'training_state.npy'
+lcg_c = 1 + 2 * ((sequence_length * 6364136223846793005 + 1442695040888963407) & 0xFFFFFFFFFFFF) # 
 
 steps_per_epoch = 200 #1000 #15 #for lr_scheduler #500 #token_count // (batch_size * sequence_length)
 epochs = len(tokens) // (steps_per_epoch * batch_size * accumulation_steps) #5
@@ -106,7 +107,7 @@ def generator(start_index):
     step = start_index
     while True:
         #idx = feistel_shuffle_index(step, len(tokens) - sequence_length - 1, key=0xA5A5A5A5)
-        idx = lcg_shuffle(step, len(tokens) - sequence_length - 1)
+        idx = lcg_shuffle(step, len(tokens) - sequence_length - 1, c = lcg_c)
         x = tokens[idx : idx + sequence_length]
         y = tokens[idx + 1 : idx + 1 + sequence_length]
         yield x, y

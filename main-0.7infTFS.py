@@ -11,7 +11,7 @@ import numpy as np
 # --- Настройки ---
 dir_path = ''
 tokenizer = Tokenizer.from_file(dir_path + 'bpe_tokenizer_15k268files.json')
-model_path = dir_path + "output/sl128_b156_as10/model_checkpoint_3.53.keras"
+model_path = dir_path + "output/sl512_b46_as10/model_checkpoint_4.00.keras"
 
 max_generations = 100000
 temperature = 1
